@@ -11,6 +11,8 @@ from .test_app.models import (
     CustomQsPermanent,
     M2MFrom,
     M2MTo,
+    MultiTableChild,
+    MultiTableParent,
     MyPermanentModel,
     MyPermanentModelWithManager,
     NonRemovableDepended,
@@ -284,7 +286,7 @@ class TestCustomManager(TestCase):
         self.assertEqual(MyPermanentModelWithManager.any_objects.count(), 2)
 
 
-class RetoreOnCreateTestCase(TestCase):
+class RestoreOnCreateTestCase(TestCase):
     def setUp(self):
         self.obj = RestoreOnCreateModel.objects.create(name='obj1')
 
@@ -293,3 +295,27 @@ class RetoreOnCreateTestCase(TestCase):
         new_obj = RestoreOnCreateModel.objects.create(name='obj1')
 
         self.assertEqual(new_obj.pk, self.obj.pk)
+
+
+class TestTableInheritanceDelete(TestCase):
+    def setUp(self):
+        self.child = MultiTableChild.objects.create()
+
+    def test_child_delete(self):
+        self.child.delete()
+        self.assertEqual(MultiTableChild.objects.count(), 0)
+        self.assertEqual(MultiTableChild.deleted_objects.count(), 1)
+        self.assertEqual(MultiTableChild.all_objects.count(), 1)
+        self.assertEqual(MultiTableParent.objects.count(), 0)
+        self.assertEqual(MultiTableParent.deleted_objects.count(), 1)
+        self.assertEqual(MultiTableParent.all_objects.count(), 1)
+
+    def test_parent_delete(self):
+        self.child.multitableparent_ptr.delete()
+        self.assertEqual(MultiTableChild.objects.count(), 0)
+        self.assertEqual(MultiTableChild.deleted_objects.count(), 1)
+        self.assertEqual(MultiTableChild.all_objects.count(), 1)
+        self.assertEqual(MultiTableParent.objects.count(), 0)
+        self.assertEqual(MultiTableParent.deleted_objects.count(), 1)
+        self.assertEqual(MultiTableParent.all_objects.count(), 1)
+

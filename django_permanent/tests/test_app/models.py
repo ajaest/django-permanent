@@ -52,6 +52,14 @@ class M2MTo(BaseTestModel):
     m2m_from = models.ManyToManyField('M2MFrom', through=PermanentM2MThrough)
 
 
+class MultiTableParent(PermanentModel, BaseTestModel):
+    pass
+
+
+class MultiTableChild(MultiTableParent):
+    pass
+
+
 class MyPermanentQuerySet(PermanentQuerySet):
     def test(self):
         pass
