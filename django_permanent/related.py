@@ -13,15 +13,19 @@ def get_extra_restriction_patch(func):
         if not issubclass(self.model, PermanentModel) or issubclass(where_class, AllWhereNode):
             return cond
 
+        if django.VERSION < (1, 8, 0):
+            field = self.model._meta.get_field_by_name(settings.FIELD)[0]
+        else:
+            field = self.model._meta.get_field(settings.FIELD)
+
+        if field.model != self.model:
+            return cond
+
         if issubclass(where_class, DeletedWhereNode):
             cond = cond or ~where_class()
         else:
             cond = cond or where_class()
 
-        if django.VERSION < (1, 8, 0):
-            field = self.model._meta.get_field_by_name(settings.FIELD)[0]
-        else:
-            field = self.model._meta.get_field(settings.FIELD)
 
         if django.VERSION < (1, 7, 0):
             from django.db.models.sql.where import Constraint
